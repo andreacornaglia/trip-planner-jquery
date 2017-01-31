@@ -65,8 +65,57 @@ $(function initializeMap () {
     marker.setMap(currentMap);
   }
 
-  drawMarker('hotel', [40.705137, -74.007624]);
-  drawMarker('restaurant', [40.705137, -74.013940]);
-  drawMarker('activity', [40.716291, -73.995315]);
+  //drawMarker('hotel', [40.705137, -74.007624]);
+  //drawMarker('restaurant', [40.705137, -74.013940]);
+  //drawMarker('activity', [40.716291, -73.995315]);
+  
+  ///populating options dropdowns
+  
+  var locationLookup = {};
+function generateList(list){
+  var res = "";
+  for(var i=0; i < list.length; i++){
+    res += '<option value=" '+ list[i].name +'">'+ list[i].name +'</option>'
+    locationLookup[list[i].name.trim()] = list[i].place.location;
+  }
+  return res;
+}
+
+$('#hotel-choices').append(generateList(hotels));
+$('#restaurant-choices').append(generateList(restaurants));
+$('#activity-choices').append(generateList(activities));
+
+//making add buttons work
+$('#add-hotel').on('click', function(){
+  var val = $('#hotel-choices').val().trim();
+  createItem(val, 'hotel');
+  var coord = locationLookup[val];
+  drawMarker('hotel', [coord[0], coord[1]]);
+})
+$('#add-restaurant').on('click', function(){
+  var val = $('#restaurant-choices').val().trim();
+  createItem(val, 'restaurant');
+  var coord = locationLookup[val];
+  drawMarker('restaurant', [coord[0], coord[1]]);
+})
+$('#add-activity').on('click', function(){
+  var val = $('#activity-choices').val().trim();
+  createItem(val, 'activity');
+  var coord = locationLookup[val];
+  drawMarker('activity', [coord[0], coord[1]]);
+})
+
+function createItem(name, type){
+  var str =  '<div class="itinerary-item"><span class="title">'+name+'</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
+  $('#'+type+'-group ul').append(str);
+}
+  $('#itinerary').on('click', '.itinerary-item' , function(){
+    this.remove();
+  })
+  
+  $('#day-add').on('click', function(){
+    
+  })
 
 });
+
