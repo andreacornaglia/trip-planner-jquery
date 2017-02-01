@@ -54,7 +54,9 @@ $(function initializeMap () {
     restaurant: '/images/restaurant.png',
     activity: '/images/star-3.png'
   };
-
+  
+var locationLookup = {};
+  
   function drawMarker (type, coords) {
     const latLng = new google.maps.LatLng(coords[0], coords[1]);
     const iconURL = iconURLs[type];
@@ -63,6 +65,7 @@ $(function initializeMap () {
       position: latLng
     });
     marker.setMap(currentMap);
+    return marker;
   }
 
   //drawMarker('hotel', [40.705137, -74.007624]);
@@ -71,12 +74,15 @@ $(function initializeMap () {
   
   ///populating options dropdowns
   
-  var locationLookup = {};
+
 function generateList(list){
   var res = "";
   for(var i=0; i < list.length; i++){
     res += '<option value=" '+ list[i].name +'">'+ list[i].name +'</option>'
-    locationLookup[list[i].name.trim()] = list[i].place.location;
+    locationLookup[list[i].name.trim()] = {
+      'coordinates': list[i].place.location,
+      'marker': null
+    }
   }
   return res;
 }
@@ -86,35 +92,44 @@ $('#restaurant-choices').append(generateList(restaurants));
 $('#activity-choices').append(generateList(activities));
 
 //making add buttons work
-$('#add-hotel').on('click', function(){
-  var val = $('#hotel-choices').val().trim();
-  createItem(val, 'hotel');
-  var coord = locationLookup[val];
-  drawMarker('hotel', [coord[0], coord[1]]);
+var types = ['hotel', 'restaurant', 'activity']; 
+types.forEach(function(type){
+  setAddFn(type);
 })
-$('#add-restaurant').on('click', function(){
-  var val = $('#restaurant-choices').val().trim();
-  createItem(val, 'restaurant');
-  var coord = locationLookup[val];
-  drawMarker('restaurant', [coord[0], coord[1]]);
-})
-$('#add-activity').on('click', function(){
-  var val = $('#activity-choices').val().trim();
-  createItem(val, 'activity');
-  var coord = locationLookup[val];
-  drawMarker('activity', [coord[0], coord[1]]);
-})
+
+var infowindow = new google.maps.InfoWindow({
+  content: "<p>Hello World!</p>"
+});
+
+function setAddFn(type){
+  $('#add-'+ type).on('click', function(){
+  var val = $('#'+type+'-choices').val().trim();
+  createItem(val, type);
+  var coord = locationLookup[val].coordinates;
+  var m = drawMarker(type, [coord[0], coord[1]]);
+  m.addListener('click', function(){
+    infowindow.open(currentMap, m);
+  });
+  locationLookup[val].marker = m;
+  })
+}
 
 function createItem(name, type){
   var str =  '<div class="itinerary-item"><span class="title">'+name+'</span><button class="btn btn-xs btn-danger remove btn-circle">x</button></div>'
   $('#'+type+'-group ul').append(str);
 }
   $('#itinerary').on('click', '.itinerary-item' , function(){
+    var name = $(this).find('span').html();
+    var marker = locationLookup[name].marker;
+    marker.setMap(null);
+    console.log(name);
     this.remove();
   })
   
   $('#day-add').on('click', function(){
-    
+    var day = parseInt($(this).prev().html()) + 1;
+    console.log(day);
+    $(this).before('<button class="btn btn-circle day-btn">'+day+'</button>');
   })
 
 });
